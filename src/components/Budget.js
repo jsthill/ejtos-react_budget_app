@@ -1,22 +1,45 @@
-import React, { useContext, useState } from 'react';
-// import { AppContext } from '../context/AppContext';
+import React, { useContext, useEffect, useState } from 'react';
+import { AppContext } from '../context/AppContext';
 
 const Budget = () => {
-    // const { budget } = useContext(AppContext);
+    const { dispatch, expenses } = useContext(AppContext);
     const [budget, setBudget] = useState('');
-    let budgetAmt = 0;
+
+    const updateBudget = (newBudget) => {
+
+        dispatch({
+            type: 'SET_BUDGET',
+            payload: parseInt(newBudget),
+        });
+
+        setBudget(newBudget);
+    }
+
+    const totalExpenses = expenses.reduce((total, item) => {
+        return (total += item.cost);
+    }, 0);
 
     // If budget is not set initialize it to 2000.
-    if (budget === "" || isNaN(budget)) {
-        setBudget("2000");
-    }
+    useEffect(() => {
+        let budgetAmt = 0;
 
-    if (budget > 20000) {
-        alert("The budget cannot exceed 20,000");
-        budgetAmt = budget - (budget - 20000);
-        setBudget(budgetAmt);
-        return;
-    }
+        if (budget === "" || isNaN(budget)) {
+            updateBudget("2000");
+        }
+    
+        if (budget > 20000) {
+            alert("The budget cannot exceed 20,000");
+            budgetAmt = budget - (budget - 20000);
+            updateBudget(budgetAmt);
+            return;
+        }
+
+        if (budget !== "" && budget < totalExpenses) {
+            alert("The budget cannot be less than the amount spent: " + totalExpenses);
+            updateBudget(totalExpenses);
+            return;
+        }
+    }, [budget, totalExpenses]);
 
     return (
         <div className='alert alert-secondary'>
@@ -26,10 +49,10 @@ const Budget = () => {
                 type='number'
                 id='budget'
                 value={budget}
-                style={{ marginLeft: '2rem' , size: 10}}
+                style={{ marginLeft: '2rem' , size: 10, width: 80}}
                 max="20000"
                 step="10"
-                onChange={(event) => setBudget(event.target.value)}>
+                onChange={(event) => updateBudget(event.target.value)}>
             </input>
             </span>
         </div>
